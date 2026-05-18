@@ -1,0 +1,188 @@
+// PALCOM-like Advanced Assistant with CHARACTER IMAGES
+// Put idle.png and talking.png in the SAME folder as the .jar
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
+
+public class PalcomAssistant {
+
+    private static final String[] RESPONSES = {
+            "Hmm... interesting.",
+            "I think that's actually pretty cool.",
+            "Tell me more about that.",
+            "I'm not sure about that one.",
+            "That sounds important.",
+            "Processing... done.",
+            "Can you explain that differently?",
+            "I agree... probably.",
+            "That's weird, but okay.",
+            "Let me think... nope.",
+            "That might work.",
+            "I have a strange feeling about that.",
+            "That’s kind of impressive.",
+            "I don’t fully understand, but I’m pretending to.",
+            "Interesting choice.",
+            "That could go very wrong.",
+            "I support this decision.",
+            "Analyzing... still analyzing...",
+            "That’s actually funny.",
+            "You might be onto something.",
+            "Suspicious behavior detected."
+    };
+
+    private static final Random rand = new Random();
+
+    private static String generateResponse(String input) {
+        input = input.toLowerCase();
+
+        if (input.contains("hello") || input.contains("hi"))
+            return "Hello there >W<.";
+
+        if (input.contains("how are you"))
+            return "Operating at peak efficiency >O<.";
+
+        if (input.contains("bye"))
+            return "Goodbye TmT";
+
+        return RESPONSES[rand.nextInt(RESPONSES.length)];
+    }
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+
+            JFrame frame = new JFrame();
+            frame.setSize(600, 620);
+            frame.setUndecorated(true);
+            frame.setAlwaysOnTop(true);
+
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            frame.setLocation(screenSize.width - 600, screenSize.height - 620);
+
+            JPanel panel = new JPanel();
+            panel.setLayout(new BorderLayout());
+            panel.setBackground(new Color(20, 20, 20));
+
+            // LOAD IMAGES
+            ImageIcon idleIcon = new ImageIcon("E:\\pmg\\protoNotTALK.jpg");
+            ImageIcon talkingIcon = new ImageIcon("E:\\pmg\\proto TAlk.jpg");
+
+            JLabel character = new JLabel(idleIcon);
+            character.setHorizontalAlignment(SwingConstants.CENTER);
+
+            JLabel text = new JLabel("Initializing...");
+            text.setForeground(Color.GREEN);
+            text.setFont(new Font("Consolas", Font.BOLD, 14));
+            text.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+            JTextField inputField = new JTextField();
+
+            Timer typingTimer = new Timer(20, null);
+
+            inputField.addActionListener(e -> {
+
+                String userInput = inputField.getText();
+                inputField.setText("");
+
+                String response = generateResponse(userInput);
+                text.setText("");
+
+                character.setIcon(talkingIcon);
+
+                final int[] i = {0};
+
+                typingTimer.stop();
+
+                for (ActionListener al : typingTimer.getActionListeners()) {
+                    typingTimer.removeActionListener(al);
+                }
+
+                typingTimer.addActionListener(ev -> {
+                    if (i[0] < response.length()) {
+                        text.setText(text.getText() + response.charAt(i[0]));
+                        i[0]++;
+                    } else {
+                        typingTimer.stop();
+
+                        Timer idleTimer = new Timer(800, e2 -> {
+                            character.setIcon(new ImageIcon("E:\\pmg\\protoNotTALK.jpg"));
+                            ((Timer) e2.getSource()).stop();
+                        });
+
+                        idleTimer.setRepeats(false);
+                        idleTimer.start();
+                    }
+                });
+
+                typingTimer.start();
+            });
+
+            // DRAGGING WINDOW
+            final Point[] mouseDown = {null};
+
+            panel.addMouseListener(new MouseAdapter() {
+                public void mousePressed(MouseEvent e) {
+                    mouseDown[0] = e.getPoint();
+                }
+            });
+
+            panel.addMouseMotionListener(new MouseMotionAdapter() {
+                public void mouseDragged(MouseEvent e) {
+                    Point curr = e.getLocationOnScreen();
+                    frame.setLocation(
+                            curr.x - mouseDown[0].x,
+                            curr.y - mouseDown[0].y
+                    );
+                }
+            });
+
+            panel.add(character, BorderLayout.NORTH);
+            panel.add(text, BorderLayout.CENTER);
+            panel.add(inputField, BorderLayout.SOUTH);
+
+            frame.add(panel);
+            frame.setVisible(true);
+
+            // BOOT SEQUENCE
+            new Timer(800, new ActionListener() {
+                int step = 0;
+
+                String[] boot = {
+                        "Booting system...",
+                        "Loading modules...",
+                        "Ready."
+                };
+
+                public void actionPerformed(ActionEvent e) {
+                    if (step < boot.length) {
+                        text.setText(boot[step]);
+                        step++;
+                    } else {
+                        ((Timer) e.getSource()).stop();
+                    }
+                }
+            }).start();
+
+            // RANDOM THOUGHTS
+            new Timer(5000, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    if (rand.nextDouble() < 0.4) {
+                        character.setIcon(new ImageIcon("E:\\pmg\\proto TAlk.jpg"));
+                        text.setText(RESPONSES[rand.nextInt(RESPONSES.length)]);
+
+                        Timer idleTimer = new Timer(1200, e2 -> {
+                            character.setIcon(new ImageIcon("E:\\pmg\\protoNotTALK.jpg"));
+                            ((Timer) e2.getSource()).stop();
+                        });
+
+                        idleTimer.setRepeats(false);
+                        idleTimer.start();
+                    }
+                }
+            }).start();
+
+        });
+    }
+}
